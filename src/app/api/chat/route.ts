@@ -1,0 +1,61 @@
+import { NextRequest } from "next/server";
+import { UIMessage as VercelChatMessage } from "ai";
+import { createUIMessageStreamResponse } from "ai";
+import { toUIMessageStream } from "@ai-sdk/langchain";
+import { ChatOpenAI } from "@langchain/openai";
+import { HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages";
+import { PHILOSOPHY_SYSTEM_PROMPT } from "@/lib/prompts";
+
+// LangChain configuration for OpenRouter
+const model = new ChatOpenAI({
+  temperature: 0.7,
+  modelName: "nvidia/nemotron-3-ultra-550b-a55b",
+  maxTokens: 1000,
+  apiKey: process.env.OPENROUTER_API_KEY || "your_openrouter_api_key",
+  configuration: {
+    baseURL: "https://openrouter.ai/api/v1",
+    defaultHeaders: {
+      "HTTP-Referer": "http://localhost:3000",
+      "X-Title": "Philosophical Chatbot",
+    }
+  }
+});
+
+export const runtime = "edge";
+
+export async function POST(req: NextRequest) {
+  try {
+    const { messages, conversationId } = await req.json();
+
+    if (!messages || !Array.isArray(messages)) {
+      return new Response("Bad Request", { status: 400 });
+    }
+
+    // Prepare LangChain messages
+    const formattedMessages = messages.map((m: VercelChatMessage) => {
+      const textContent = (m as any).content || m.parts?.filter(p => p.type === 'text').map(p => (p as any).text).join('') || '';
+      
+      if (m.role === "user") {
+        return new HumanMessage(textContent);
+      } else if (m.role === "assistant") {
+        return new AIMessage(textContent);
+      } else {
+        return new SystemMessage(textContent);
+      }
+    });
+
+    // Prepend the system prompt
+    formattedMessages.unshift(new SystemMessage(PHILOSOPHY_SYSTEM_PROMPT));
+
+    // Call Cloud LLM
+    const stream = await model.stream(formattedMessages);
+
+    return createUIMessageStreamResponse({
+      stream: toUIMessageStream(stream)
+    });
+
+  } catch (e: any) {
+    console.error("Chat API Error:", e);
+    return new Response(e.message || "Something went wrong", { status: 500 });
+  }
+}
