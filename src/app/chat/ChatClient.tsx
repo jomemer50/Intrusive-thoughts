@@ -269,7 +269,7 @@ function ChatApp({ conversationId, initialMessages, updateConversationsList }: {
           <input
             className="flex-1 p-3 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent transition-colors"
             value={input || ''}
-            placeholder="What you be thiinking be like..."
+            placeholder="What your thinking be like..."
             onChange={handleInputChange}
             disabled={isLoading}
           />
