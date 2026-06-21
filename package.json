@@ -12,6 +12,7 @@
     "@ai-sdk/langchain": "^2.0.209",
     "@ai-sdk/react": "^3.0.206",
     "@auth0/nextjs-auth0": "^4.22.0",
+    "@gradio/client": "^2.3.0",
     "@langchain/anthropic": "^1.4.0",
     "@langchain/openai": "^1.4.7",
     "@supabase/supabase-js": "^2.108.1",

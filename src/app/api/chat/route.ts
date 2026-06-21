@@ -10,7 +10,7 @@ import { PHILOSOPHY_SYSTEM_PROMPT } from "@/lib/prompts";
 const model = new ChatOpenAI({
   temperature: 0.7,
   modelName: "nvidia/nemotron-3-ultra-550b-a55b",
-  maxTokens: 1000,
+  maxTokens: 4096,
   apiKey: process.env.OPENROUTER_API_KEY || "your_openrouter_api_key",
   configuration: {
     baseURL: "https://openrouter.ai/api/v1",

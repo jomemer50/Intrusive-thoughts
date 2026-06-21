@@ -2,7 +2,8 @@
 
 import { useChat } from '@ai-sdk/react';
 import { FormEvent, useRef, useEffect, useState } from 'react';
-import { SendIcon, Loader2, Moon, Sun, Trash2, Plus, MessageSquare } from 'lucide-react';
+import { SendIcon, Loader2, Moon, Sun, Trash2, Plus, MessageSquare, Mic } from 'lucide-react';
+import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTheme } from 'next-themes';
@@ -141,12 +142,17 @@ export default function ChatClient() {
             <span className="text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2 py-1 rounded hidden sm:inline-block">*lights a cigarrete*</span>
           </div>
           {mounted && (
-            <button
-              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-              className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-            >
-              {resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+            <div className="flex items-center space-x-2">
+              <Link href="/voice" className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center" title="Voice Mode">
+                <Mic className="w-5 h-5" />
+              </Link>
+              <button
+                onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              >
+                {resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+            </div>
           )}
         </div>
 
@@ -159,6 +165,7 @@ export default function ChatClient() {
             updateConversationsList={(id, title) => {
               setConversations(prev => {
                 const existing = prev.find(c => c.id === id);
+                if (existing && existing.title === title) return prev; // Prevent unnecessary re-renders
                 let newList;
                 if (existing) {
                   newList = prev.map(c => c.id === id ? { ...c, title, updatedAt: Date.now() } : c);
@@ -181,16 +188,11 @@ function ChatApp({ conversationId, initialMessages, updateConversationsList }: {
 
   const { messages, sendMessage, status, setMessages } = useChat({
     api: '/api/chat',
+    initialMessages,
     body: {
       conversationId
     }
   } as any);
-
-  useEffect(() => {
-    if (initialMessages && initialMessages.length > 0) {
-      setMessages(initialMessages);
-    }
-  }, [initialMessages, setMessages]);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -234,7 +236,7 @@ function ChatApp({ conversationId, initialMessages, updateConversationsList }: {
         
         {messages.map((m) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`px-4 py-3 rounded-2xl max-w-[85%] whitespace-pre-wrap ${
+            <div className={`px-4 py-3 rounded-2xl max-w-[85%] ${
               m.role === 'user' 
                 ? 'bg-black text-white dark:bg-zinc-100 dark:text-black rounded-br-sm' 
                 : 'bg-zinc-100 text-black dark:bg-zinc-800 dark:text-zinc-100 rounded-bl-sm border border-zinc-200 dark:border-zinc-700'
